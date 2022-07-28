@@ -430,11 +430,14 @@ def get_pc_sampler(sde, model, shape, predictor, corrector, inverse_scaler, snr,
       x, x_mean = corrector_update_fn(step_rng, state, x, vec_t)
       rng, step_rng = random.split(rng)
       x, x_mean = predictor_update_fn(step_rng, state, x, vec_t)
+      # from jax.experimental.host_callback import id_print
+      # id_print(x.flatten()[0:2])
+
       return rng, x, x_mean
 
-    _, x, x_mean = jax.lax.fori_loop(0, sde.N, loop_body, (rng, x, x))
+    rng, x, x_mean = jax.lax.fori_loop(0, sde.N, loop_body, (rng, x, x))
     # Denoising is equivalent to running one predictor step without adding noise.
-    return inverse_scaler(x_mean if denoise else x), sde.N * (n_steps + 1)
+    return inverse_scaler(x_mean if denoise else x), sde.N * (n_steps + 1), rng
 
   return jax.pmap(pc_sampler, axis_name='batch')
 

@@ -147,7 +147,8 @@ def get_model_fn(model, params, states, train=False):
     Returns:
       A tuple of (model output, new mutable states)
     """
-    variables = {'params': params, **states}
+    variables = {'params': params, **states}      
+
     if not train:
       return model.apply(variables, x, labels, train=False, mutable=False), states
     else:
@@ -193,8 +194,11 @@ def get_score_fn(sde, model, params, states, train=False, continuous=False, retu
         labels = t * (sde.N - 1)
         model, state = model_fn(x, labels, rng)
         std = sde.sqrt_1m_alphas_cumprod[labels.astype(jnp.int32)]
+      
+
 
       score = batch_mul(-model, 1. / std)
+
       if return_state:
         return score, state
       else:
